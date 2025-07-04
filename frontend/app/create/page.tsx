@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
 import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Textarea } from "../../components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
-import { Trash2, Plus, Download, Share2, Mail } from "lucide-react"
+import { Trash2, Plus, Download, Share2, Mail, CheckCircle2, Info, ArrowRight, Sparkles } from "lucide-react"
 import { InvoicePreview } from "../../components/invoice-preview"
 import { useToast } from "../../hooks/use-toast"
 import ClickSpark from "../../components/ClickSpark"
@@ -16,6 +16,10 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import html2canvas from 'html2canvas';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../../components/ui/dialog"
+import { motion, AnimatePresence } from "framer-motion"
+import confetti from 'canvas-confetti';
+import { Progress } from "../../components/ui/progress"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../components/ui/tooltip"
 
 interface InvoiceItem {
   id: string
@@ -76,6 +80,99 @@ export default function CreateInvoicePage() {
   const [emailMessage, setEmailMessage] = useState("")
   
   const invoicePreviewRef = useRef<HTMLDivElement>(null)
+
+  // New state for interactive elements
+  const [activeSection, setActiveSection] = useState("business")
+  const [completionPercentage, setCompletionPercentage] = useState(0)
+  const [recentlyCompleted, setRecentlyCompleted] = useState<string | null>(null)
+  const [animatePreview, setAnimatePreview] = useState(false)
+  const [showTips, setShowTips] = useState(true)
+  
+  const sectionRefs = {
+    business: useRef<HTMLDivElement>(null),
+    client: useRef<HTMLDivElement>(null),
+    invoice: useRef<HTMLDivElement>(null),
+    items: useRef<HTMLDivElement>(null),
+    additional: useRef<HTMLDivElement>(null)
+  }
+
+  // Calculate completion percentage based on filled fields
+  useEffect(() => {
+    let completed = 0;
+    let total = 0;
+    
+    // Business section (3 fields)
+    if (invoiceData.businessName) completed++;
+    if (invoiceData.businessGST) completed++;
+    if (invoiceData.businessAddress) completed++;
+    total += 3;
+    
+    // Client section (5 fields)
+    if (invoiceData.clientName) completed++;
+    if (invoiceData.clientEmail) completed++;
+    if (invoiceData.clientPhone) completed++;
+    if (invoiceData.clientGST) completed++;
+    if (invoiceData.clientAddress) completed++;
+    total += 5;
+    
+    // Invoice details (3 fields)
+    if (invoiceData.invoiceNumber) completed++;
+    if (invoiceData.date) completed++;
+    if (invoiceData.dueDate) completed++;
+    total += 3;
+    
+    // Items (count each completed item)
+    invoiceData.items.forEach(item => {
+      if (item.description) completed++;
+      if (item.quantity > 0) completed++;
+      if (item.rate > 0) completed++;
+      total += 3;
+    });
+    
+    // Additional info (2 fields)
+    if (invoiceData.notes) completed++;
+    if (invoiceData.terms) completed++;
+    total += 2;
+    
+    const percentage = Math.round((completed / total) * 100);
+    setCompletionPercentage(percentage);
+    
+    // Trigger animation when reaching certain thresholds
+    
+    // Animate preview when data changes
+    setAnimatePreview(true);
+    setTimeout(() => setAnimatePreview(false), 500);
+    
+  }, [invoiceData]);
+
+  // Function to scroll to a section
+  const scrollToSection = (section: keyof typeof sectionRefs) => {
+    setActiveSection(section);
+    sectionRefs[section]?.current?.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    });
+  }
+
+  // Trigger confetti effect
+  const triggerConfetti = () => {
+    confetti({
+      particleCount: 100,
+      spread: 70,
+      origin: { y: 0.6 }
+    });
+  }
+
+  // Function to show success toast when field is completed
+  const handleFieldCompletion = (fieldName: string) => {
+    if (Math.random() > 0.7) { // Only show messages occasionally
+      toast({
+        title: "Good progress!",
+        description: `You've completed the ${fieldName} field!`,
+        variant: "default"
+      });
+    }
+  }
 
   const addItem = () => {
     const newItem: InvoiceItem = {
@@ -253,7 +350,7 @@ export default function CreateInvoicePage() {
   const { subtotal, taxAmount, total } = calculateTotals()
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
       <ClickSpark
         sparkColor='#000'
         sparkSize={15}
@@ -263,352 +360,634 @@ export default function CreateInvoicePage() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Create Invoice</h1>
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">
+              Create Invoice
+            </h1>
             <p className="text-gray-600">Generate professional GST-ready invoices</p>
+            
+            {/* Progress indicator */}
+            <div className="mt-4">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-sm font-medium text-gray-700">
+                  {completionPercentage}% complete
+                </span>
+                {showTips && (
+                  <button 
+                    onClick={() => setShowTips(false)}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Hide tips
+                  </button>
+                )}
+              </div>
+              <Progress value={completionPercentage} className="h-2 bg-gray-200" />
+              
+              {/* Section navigation pills */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                {Object.keys(sectionRefs).map((section) => (
+                  <button
+                    key={section}
+                    onClick={() => scrollToSection(section as keyof typeof sectionRefs)}
+                    className={`px-3 py-1.5 text-sm rounded-full transition-all ${
+                      activeSection === section
+                        ? "bg-blue-600 text-white shadow-md"
+                        : "bg-white text-gray-600 hover:bg-gray-100"
+                    }`}
+                  >
+                    {section.charAt(0).toUpperCase() + section.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Success message */}
+            <AnimatePresence>
+              {recentlyCompleted && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="mt-4 p-3 bg-green-50 border border-green-100 rounded-lg"
+                >
+                  <div className="flex items-center">
+                    <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+                    <p className="text-green-700 font-medium">
+                      {recentlyCompleted === "halfway" 
+                        ? "You're halfway there! Keep going!" 
+                        : "Amazing! You've completed all fields!"}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="grid lg:grid-cols-2 gap-8">
             {/* Form Section */}
             <div className="space-y-6">
               {/* Business Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="businessName">Business Name</Label>
-                    <Input
-                      id="businessName"
-                      value={invoiceData.businessName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, businessName: e.target.value }))}
-                      placeholder="Your Business Name"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="businessGST">GST Number (Optional)</Label>
-                    <Input
-                      id="businessGST"
-                      value={invoiceData.businessGST}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, businessGST: e.target.value }))}
-                      placeholder="22AAAAA0000A1Z5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="businessAddress">Business Address</Label>
-                    <Textarea
-                      id="businessAddress"
-                      value={invoiceData.businessAddress}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, businessAddress: e.target.value }))}
-                      placeholder="Your business address"
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div 
+                ref={sectionRefs.business}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 }}
+              >
+                <Card className={`border-l-4 transition-all ${
+                  activeSection === 'business' ? 'border-l-blue-500 shadow-lg' : 'border-l-transparent'
+                }`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <span className="bg-blue-100 text-blue-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">1</span>
+                      Business Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative">
+                      <Label htmlFor="businessName" className="inline-flex">
+                        Business Name
+                        {showTips && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="h-4 w-4 ml-1 text-gray-400" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="w-[200px] text-xs">Enter your registered business name as it should appear on the invoice</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+                      </Label>
+                      <Input
+                        id="businessName"
+                        value={invoiceData.businessName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          const value = e.target.value;
+                          setInvoiceData((prev) => ({ ...prev, businessName: value }));
+                          if (value && !invoiceData.businessName) {
+                            handleFieldCompletion("Business Name");
+                          }
+                        }}
+                        placeholder="Your Business Name"
+                        className="border-gray-300 focus-within:border-blue-500 focus-within:ring-blue-500 transition-all"
+                      />
+                      {invoiceData.businessName && (
+                        <motion.span 
+                          initial={{ scale: 0 }} 
+                          animate={{ scale: 1 }}
+                          className="absolute right-3 top-9 text-green-500"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </motion.span>
+                      )}
+                    </div>
+                    
+                    {/* Continue with other business fields following the same pattern */}
+                    <div className="relative">
+                      <Label htmlFor="businessGST">GST Number (Optional)</Label>
+                      <Input
+                        id="businessGST"
+                        value={invoiceData.businessGST}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setInvoiceData((prev) => ({ ...prev, businessGST: e.target.value }));
+                          if (e.target.value && !invoiceData.businessGST) {
+                            handleFieldCompletion("GST Number");
+                          }
+                        }}
+                        placeholder="22AAAAA0000A1Z5"
+                        className="border-gray-300 focus-within:border-blue-500 focus-within:ring-blue-500 transition-all"
+                      />
+                      {invoiceData.businessGST && (
+                        <motion.span 
+                          initial={{ scale: 0 }} 
+                          animate={{ scale: 1 }}
+                          className="absolute right-3 top-9 text-green-500"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </motion.span>
+                      )}
+                    </div>
+                    
+                    <div className="relative">
+                      <Label htmlFor="businessAddress">Business Address</Label>
+                      <Textarea
+                        id="businessAddress"
+                        value={invoiceData.businessAddress}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                          setInvoiceData((prev) => ({ ...prev, businessAddress: e.target.value }));
+                          if (e.target.value && !invoiceData.businessAddress) {
+                            handleFieldCompletion("Business Address");
+                          }
+                        }}
+                        placeholder="Your business address"
+                        rows={3}
+                        className="border-gray-300 focus-within:border-blue-500 focus-within:ring-blue-500 transition-all resize-none"
+                      />
+                      {invoiceData.businessAddress && (
+                        <motion.span 
+                          initial={{ scale: 0 }} 
+                          animate={{ scale: 1 }}
+                          className="absolute right-3 top-9 text-green-500"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </motion.span>
+                      )}
+                    </div>
+                    
+                    {invoiceData.businessName && invoiceData.businessAddress && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex justify-end"
+                      >
+                        <Button 
+                          onClick={() => scrollToSection('client')} 
+                          variant="ghost" 
+                          className="text-blue-600 hover:text-blue-700"
+                        >
+                          Next: Client Info <ArrowRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Client Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Client Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="clientName">Client Name</Label>
-                    <Input
-                      id="clientName"
-                      value={invoiceData.clientName}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientName: e.target.value }))}
-                      placeholder="Client Name"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="clientEmail">Email</Label>
+              <motion.div 
+                ref={sectionRefs.client}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                <Card className={`border-l-4 transition-all ${
+                  activeSection === 'client' ? 'border-l-purple-500 shadow-lg' : 'border-l-transparent'
+                }`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <span className="bg-purple-100 text-purple-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">2</span>
+                      Client Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {/* Client fields with similar enhancements */}
+                    <div className="relative">
+                      <Label htmlFor="clientName">Client Name</Label>
                       <Input
-                        id="clientEmail"
-                        type="email"
-                        value={invoiceData.clientEmail}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientEmail: e.target.value }))}
-                        placeholder="client@example.com"
+                        id="clientName"
+                        value={invoiceData.clientName}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                          setInvoiceData((prev) => ({ ...prev, clientName: e.target.value }));
+                          if (e.target.value && !invoiceData.clientName) {
+                            handleFieldCompletion("Client Name");
+                          }
+                        }}
+                        placeholder="Client Name"
+                        className="border-gray-300 focus-within:border-purple-500 focus-within:ring-purple-500 transition-all"
                       />
+                      {invoiceData.clientName && (
+                        <motion.span 
+                          initial={{ scale: 0 }} 
+                          animate={{ scale: 1 }}
+                          className="absolute right-3 top-9 text-green-500"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </motion.span>
+                      )}
                     </div>
-                    <div>
-                      <Label htmlFor="clientPhone">Phone</Label>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="relative">
+                        <Label htmlFor="clientEmail">Email</Label>
+                        <Input
+                          id="clientEmail"
+                          type="email"
+                          value={invoiceData.clientEmail}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientEmail: e.target.value }))}
+                          placeholder="client@example.com"
+                          className="border-gray-300 focus-within:border-purple-500 focus-within:ring-purple-500 transition-all"
+                        />
+                        {invoiceData.clientEmail && (
+                          <motion.span 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }}
+                            className="absolute right-3 top-9 text-green-500"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </motion.span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Label htmlFor="clientPhone">Phone</Label>
+                        <Input
+                          id="clientPhone"
+                          value={invoiceData.clientPhone}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientPhone: e.target.value }))}
+                          placeholder="+91 9876543210"
+                          className="border-gray-300 focus-within:border-purple-500 focus-within:ring-purple-500 transition-all"
+                        />
+                        {invoiceData.clientPhone && (
+                          <motion.span 
+                            initial={{ scale: 0 }} 
+                            animate={{ scale: 1 }}
+                            className="absolute right-3 top-9 text-green-500"
+                          >
+                            <CheckCircle2 className="h-4 w-4" />
+                          </motion.span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="relative">
+                      <Label htmlFor="clientGST">Client GST (Optional)</Label>
                       <Input
-                        id="clientPhone"
-                        value={invoiceData.clientPhone}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientPhone: e.target.value }))}
-                        placeholder="+91 9876543210"
+                        id="clientGST"
+                        value={invoiceData.clientGST}
+                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientGST: e.target.value }))}
+                        placeholder="22BBBBB0000B1Z5"
+                        className="border-gray-300 focus-within:border-purple-500 focus-within:ring-purple-500 transition-all"
                       />
+                      {invoiceData.clientGST && (
+                        <motion.span 
+                          initial={{ scale: 0 }} 
+                          animate={{ scale: 1 }}
+                          className="absolute right-3 top-9 text-green-500"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </motion.span>
+                      )}
                     </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="clientGST">Client GST (Optional)</Label>
-                    <Input
-                      id="clientGST"
-                      value={invoiceData.clientGST}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, clientGST: e.target.value }))}
-                      placeholder="22BBBBB0000B1Z5"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="clientAddress">Client Address</Label>
-                    <Textarea
-                      id="clientAddress"
-                      value={invoiceData.clientAddress}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, clientAddress: e.target.value }))}
-                      placeholder="Client address"
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+                    <div className="relative">
+                      <Label htmlFor="clientAddress">Client Address</Label>
+                      <Textarea
+                        id="clientAddress"
+                        value={invoiceData.clientAddress}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, clientAddress: e.target.value }))}
+                        placeholder="Client address"
+                        rows={3}
+                        className="border-gray-300 focus-within:border-purple-500 focus-within:ring-purple-500 transition-all resize-none"
+                      />
+                      {invoiceData.clientAddress && (
+                        <motion.span 
+                          initial={{ scale: 0 }} 
+                          animate={{ scale: 1 }}
+                          className="absolute right-3 top-9 text-green-500"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                        </motion.span>
+                      )}
+                    </div>
+                    
+                    {invoiceData.clientName && invoiceData.clientEmail && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="flex justify-end"
+                      >
+                        <Button 
+                          onClick={() => scrollToSection('invoice')} 
+                          variant="ghost" 
+                          className="text-purple-600 hover:text-purple-700"
+                        >
+                          Next: Invoice Details <ArrowRight className="ml-1 h-4 w-4" />
+                        </Button>
+                      </motion.div>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Invoice Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Invoice Details</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="invoiceNumber">Invoice Number</Label>
-                      <Input
-                        id="invoiceNumber"
-                        value={invoiceData.invoiceNumber}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, invoiceNumber: e.target.value }))}
-                      />
+              <motion.div 
+                ref={sectionRefs.invoice}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Card className={`border-l-4 transition-all ${
+                  activeSection === 'invoice' ? 'border-l-green-500 shadow-lg' : 'border-l-transparent'
+                }`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <span className="bg-green-100 text-green-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">3</span>
+                      Invoice Details
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <Label htmlFor="invoiceNumber">Invoice Number</Label>
+                        <Input
+                          id="invoiceNumber"
+                          value={invoiceData.invoiceNumber}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, invoiceNumber: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="date">Date</Label>
+                        <Input
+                          id="date"
+                          type="date"
+                          value={invoiceData.date}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, date: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="dueDate">Due Date</Label>
+                        <Input
+                          id="dueDate"
+                          type="date"
+                          value={invoiceData.dueDate}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, dueDate: e.target.value }))}
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="date">Date</Label>
-                      <Input
-                        id="date"
-                        type="date"
-                        value={invoiceData.date}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, date: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="dueDate">Due Date</Label>
-                      <Input
-                        id="dueDate"
-                        type="date"
-                        value={invoiceData.dueDate}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInvoiceData((prev) => ({ ...prev, dueDate: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Items */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Items</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {invoiceData.items.map((item) => (
-                      <div key={item.id} className="grid grid-cols-12 gap-2 items-end">
-                        <div className="col-span-4">
-                          <Label>Description</Label>
-                          <Input
-                            value={item.description}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItem(item.id, "description", e.target.value)}
-                            placeholder="Item description"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Label>Qty</Label>
-                          <Input
-                            type="number"
-                            value={item.quantity}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItem(item.id, "quantity", Number.parseFloat(e.target.value) || 0)}
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Label>Rate (₹)</Label>
-                          <Input
-                            type="number"
-                            value={item.rate}
-                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItem(item.id, "rate", Number.parseFloat(e.target.value) || 0)}
-                            min="0"
-                            step="0.01"
-                          />
-                        </div>
-                        <div className="col-span-2">
-                          <Label>Tax %</Label>
-                          <Select
-                            value={item.taxPercent.toString()}
-                            onValueChange={(value: string) => updateItem(item.id, "taxPercent", Number.parseFloat(value))}
-                          >
-                            <SelectTrigger>
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="0">0%</SelectItem>
-                              <SelectItem value="5">5%</SelectItem>
-                              <SelectItem value="12">12%</SelectItem>
-                              <SelectItem value="18">18%</SelectItem>
-                              <SelectItem value="28">28%</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="col-span-1">
-                          <Label>Amount</Label>
-                          <div className="text-sm font-medium py-2">₹{item.amount.toFixed(2)}</div>
-                        </div>
-                        <div className="col-span-1">
-                          {invoiceData.items.length > 1 && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => removeItem(item.id)}
-                              className="text-red-600 hover:text-red-700"
+              <motion.div 
+                ref={sectionRefs.items}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <Card className={`border-l-4 transition-all ${
+                  activeSection === 'items' ? 'border-l-amber-500 shadow-lg' : 'border-l-transparent'
+                }`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <span className="bg-amber-100 text-amber-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">4</span>
+                      Items
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div id="items-container" className="space-y-4 max-h-[400px] overflow-y-auto pr-1 scrollbar scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                      {invoiceData.items.map((item, index) => (
+                        <motion.div 
+                          key={item.id} 
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="grid grid-cols-12 gap-2 items-end p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="col-span-4">
+                            <Label>Description</Label>
+                            <Input
+                              value={item.description}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItem(item.id, "description", e.target.value)}
+                              placeholder="Item description"
+                              className="border-gray-300 focus-within:border-amber-500 focus-within:ring-amber-500"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label>Qty</Label>
+                            <Input
+                              type="number"
+                              value={item.quantity}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItem(item.id, "quantity", Number.parseFloat(e.target.value) || 0)}
+                              min="0"
+                              step="0.01"
+                              className="border-gray-300 focus-within:border-amber-500 focus-within:ring-amber-500"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label>Rate (₹)</Label>
+                            <Input
+                              type="number"
+                              value={item.rate}
+                              onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateItem(item.id, "rate", Number.parseFloat(e.target.value) || 0)}
+                              min="0"
+                              step="0.01"
+                              className="border-gray-300 focus-within:border-amber-500 focus-within:ring-amber-500"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <Label>Tax %</Label>
+                            <Select
+                              value={item.taxPercent.toString()}
+                              onValueChange={(value: string) => updateItem(item.id, "taxPercent", Number.parseFloat(value))}
                             >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          )}
-                        </div>
+                              <SelectTrigger className="border-gray-300 focus:ring-amber-500 focus:border-amber-500">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="0">0%</SelectItem>
+                                <SelectItem value="5">5%</SelectItem>
+                                <SelectItem value="12">12%</SelectItem>
+                                <SelectItem value="18">18%</SelectItem>
+                                <SelectItem value="28">28%</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="col-span-1">
+                            <Label>Amount</Label>
+                            <div className="text-sm font-medium py-2">₹{item.amount.toFixed(2)}</div>
+                          </div>
+                          <div className="col-span-1">
+                            {invoiceData.items.length > 1 && (
+                              <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => removeItem(item.id)}
+                                className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </motion.button>
+                            )}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={addItem}
+                      className="mt-4 w-full bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 text-amber-700 py-2.5 rounded-lg flex items-center justify-center hover:from-amber-100 hover:to-amber-200 transition-all"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Item
+                    </motion.button>
+
+                    {/* Totals */}
+                    <motion.div 
+                      className="mt-6 space-y-2 text-right bg-gray-50 p-4 rounded-lg border border-gray-200"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.5 }}
+                    >
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Subtotal:</span>
+                        <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                       </div>
-                    ))}
-                  </div>
-
-                  <Button variant="outline" onClick={addItem} className="mt-4 w-full bg-transparent">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
-                  </Button>
-
-                  {/* Totals */}
-                  <div className="mt-6 space-y-2 text-right">
-                    <div className="flex justify-between">
-                      <span>Subtotal:</span>
-                      <span>₹{subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tax Amount:</span>
-                      <span>₹{taxAmount.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between font-bold text-lg border-t pt-2">
-                      <span>Total:</span>
-                      <span>₹{total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tax Amount:</span>
+                        <span className="font-medium">₹{taxAmount.toFixed(2)}</span>
+                      </div>
+                      <motion.div 
+                        className="flex justify-between font-bold text-lg border-t border-gray-300 pt-2"
+                        animate={{ 
+                          scale: [1, 1.02, 1],
+                          transition: { 
+                            duration: 0.5,
+                            repeat: 0,
+                            repeatType: "reverse" 
+                          }
+                        }}
+                      >
+                        <span>Total:</span>
+                        <span className="text-blue-700">₹{total.toFixed(2)}</span>
+                      </motion.div>
+                    </motion.div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Notes and Terms */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Additional Information</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <Label htmlFor="notes">Notes</Label>
-                    <Textarea
-                      id="notes"
-                      value={invoiceData.notes}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, notes: e.target.value }))}
-                      placeholder="Additional notes for the client"
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="terms">Terms & Conditions</Label>
-                    <Textarea
-                      id="terms"
-                      value={invoiceData.terms}
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, terms: e.target.value }))}
-                      placeholder="Payment terms and conditions"
-                      rows={3}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div 
+                ref={sectionRefs.additional}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <Card className={`border-l-4 transition-all ${
+                  activeSection === 'additional' ? 'border-l-red-500 shadow-lg' : 'border-l-transparent'
+                }`}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <span className="bg-red-100 text-red-700 w-6 h-6 rounded-full flex items-center justify-center mr-2 text-sm">5</span>
+                      Additional Information
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <Label htmlFor="notes">Notes</Label>
+                      <Textarea
+                        id="notes"
+                        value={invoiceData.notes}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, notes: e.target.value }))}
+                        placeholder="Additional notes for the client"
+                        rows={3}
+                        className="border-gray-300 focus-within:border-red-500 focus-within:ring-red-500 transition-all resize-none"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="terms">Terms & Conditions</Label>
+                      <Textarea
+                        id="terms"
+                        value={invoiceData.terms}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInvoiceData((prev) => ({ ...prev, terms: e.target.value }))}
+                        placeholder="Payment terms and conditions"
+                        rows={3}
+                        className="border-gray-300 focus-within:border-red-500 focus-within:ring-red-500 transition-all resize-none"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap gap-4">
-                <Button onClick={handleDownloadPDF} className="flex-1 min-w-[200px]">
+              <motion.div 
+                className="flex flex-wrap gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+              >
+                <motion.button
+                  whileHover={{ scale: 1.03, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleDownloadPDF}
+                  className="flex-1 min-w-[200px] bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-4 rounded-lg flex items-center justify-center hover:from-blue-700 hover:to-indigo-700 transition-all"
+                >
                   <Download className="h-4 w-4 mr-2" />
                   Download PDF
-                </Button>
-                <Button variant="outline" onClick={handleShareWhatsApp} className="flex-1 min-w-[200px] bg-transparent">
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.03, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleShareWhatsApp}
+                  className="flex-1 min-w-[200px] bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-all"
+                >
                   <Share2 className="h-4 w-4 mr-2" />
                   Share WhatsApp
-                </Button>
-                <Button variant="outline" onClick={handleSendEmail} className="flex-1 min-w-[200px] bg-transparent">
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.03, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handleSendEmail}
+                  className="flex-1 min-w-[200px] bg-white border border-gray-300 text-gray-700 py-3 px-4 rounded-lg flex items-center justify-center hover:bg-gray-50 transition-all"
+                >
                   <Mail className="h-4 w-4 mr-2" />
                   Send Email
-                </Button>
-              </div>
-              
-              {/* Email Dialog */}
-              <Dialog open={isEmailDialogOpen} onOpenChange={setIsEmailDialogOpen}>
-                <DialogContent className="sm:max-w-[500px]">
-                  <DialogHeader>
-                    <DialogTitle>Send Invoice by Email</DialogTitle>
-                    <DialogDescription>
-                      Send this invoice directly to your client via email.
-                    </DialogDescription>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4 py-4">
-                    <div>
-                      <Label htmlFor="emailTo" className="text-right">
-                        To
-                      </Label>
-                      <Input
-                        id="emailTo"
-                        value={emailTo}
-                        onChange={(e) => setEmailTo(e.target.value)}
-                        placeholder="client@example.com"
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emailSubject" className="text-right">
-                        Subject
-                      </Label>
-                      <Input
-                        id="emailSubject"
-                        value={emailSubject}
-                        onChange={(e) => setEmailSubject(e.target.value)}
-                        className="mt-1"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emailMessage" className="text-right">
-                        Message
-                      </Label>
-                      <Textarea
-                        id="emailMessage"
-                        value={emailMessage}
-                        onChange={(e) => setEmailMessage(e.target.value)}
-                        rows={5}
-                        className="mt-1"
-                      />
-                    </div>
-                  </div>
-                  
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsEmailDialogOpen(false)}>Cancel</Button>
-                    <Button onClick={handleEmailSubmit}>
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send Email
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
+                </motion.button>
+              </motion.div>
             </div>
 
             {/* Preview Section */}
             <div className="lg:sticky lg:top-8">
-              <div ref={invoicePreviewRef}>
+              <motion.div 
+                ref={invoicePreviewRef}
+                animate={animatePreview ? { scale: [1, 1.01, 1] } : {}}
+                transition={{ duration: 0.5 }}
+              >
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="font-semibold text-xl text-gray-800">Live Preview</h3>
+                  {completionPercentage >= 70 && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center text-green-600 text-sm font-medium"
+                    >
+                      <Sparkles className="h-4 w-4 mr-1" />
+                      Looking great!
+                    </motion.div>
+                  )}
+                </div>
                 <InvoicePreview invoiceData={invoiceData} totals={{ subtotal, taxAmount, total }} />
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>

@@ -191,16 +191,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              <div className="mt-8 flex items-center justify-center md:justify-start text-gray-500">
-                <div className="flex -space-x-2">
-                  {[...Array(4)].map((_, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-200 to-indigo-200 border-2 border-white flex items-center justify-center text-xs font-medium text-indigo-600">
-                      {String.fromCharCode(65 + i)}
-                    </div>
-                  ))}
-                </div>
-                <span className="ml-3 text-sm font-medium">Trusted by 10,000+ businesses in India</span>
-              </div>
+             
             </motion.div>
 
             <motion.div
