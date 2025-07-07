@@ -152,13 +152,13 @@ export default function HomePage() {
         </motion.div>
       </header>
 
-      {/* Hero Section */}
-      <section ref={heroRef} className="pt-36 pb-24 relative">
+      {/* Hero Section - removed curve, full height background */}
+      <section ref={heroRef} className="pt-24 sm:pt-28 md:pt-36 pb-16 md:pb-24 relative min-h-screen max-h-screen">
         {/* Add Silk as background */}
         <div className="absolute inset-0 z-5 overflow-hidden">
           <Silk 
-            speed={2.5}
-            scale={1.5}
+            speed={10}
+            scale={2}
             color="#702963" 
             noiseIntensity={1.2}
             rotation={0.2}
@@ -166,142 +166,133 @@ export default function HomePage() {
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: -50}}
+              animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-center md:text-left"
             >
               <div className="inline-block mb-4 px-3 py-1 bg-blue-100 rounded-full text-blue-700 text-sm font-medium">
                 🚀 GST Ready Invoice Generator
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-                {/* <span className="block">Generate Professional</span> */}
-                {/* <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-transparent bg-clip-text">Invoices in Minutes</span> */}
-           
-
-<TrueFocus
-sentence="Generate Professional Invoices in Minutes"
-manualMode={false}
-blurAmount={5}
-borderColor="yellow"
-animationDuration={1.5}
-pauseBetweenAnimations={1}
-/>
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+                <TrueFocus
+                  sentence="Generate Professional Invoices in Minutes"
+                  manualMode={false}
+                  blurAmount={5}
+                  borderColor="yellow"
+                  animationDuration={1.5}
+                  pauseBetweenAnimations={1}
+                />
               </h1>
-              <p className="text-xl text-gray-200 mb-8 md:max-w-lg">
+              <p className="text-lg sm:text-xl text-gray-200 mb-6 sm:mb-8 max-w-lg mx-auto md:mx-0">
                 Create GST-ready invoices in ₹ (INR), download as PDF, and share instantly. Perfect for Indian
                 freelancers and small businesses.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-                <Link href="/create">
+                <Link href="/create" className="w-full sm:w-auto">
                   <Button
                     size="lg"
-                    className="relative overflow-hidden group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-0 text-white px-8 py-6 text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300"
+                    className="relative overflow-hidden group bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 border-0 text-white px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg font-medium shadow-lg hover:shadow-xl transition-all duration-300 w-full sm:w-auto"
                   >
                     <span className="absolute top-0 left-0 w-full h-full bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300"></span>
-                    <span className="relative z-10 flex items-center">
+                    <span className="relative z-10 flex items-center justify-center">
                       Generate Invoice Free
                       <ChevronRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
                     </span>
                   </Button>
                 </Link>
-                <Link href="#features">
+                <Link href="#features" className="w-full sm:w-auto">
                   <Button
                     variant="outline"
                     size="lg"
-                    className="px-8 py-6 text-lg bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all duration-300"
+                    className="px-6 sm:px-8 py-5 sm:py-6 text-base sm:text-lg bg-transparent border-2 border-blue-600 text-blue-600 hover:bg-blue-50 transition-all duration-300 w-full sm:w-auto"
                   >
                     Learn More
                   </Button>
                 </Link>
               </div>
-
-             
             </motion.div>
 
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
-              className="relative"
+              className="relative mt-8 md:mt-0"
               style={{ transform }}
             >
-              <div className="relative w-full h-full max-w-lg mx-auto">
-                <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-                <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-                <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+              <div className="relative w-full h-full max-w-sm sm:max-w-md mx-auto">
+                {/* Decorative blobs - made responsive */}
+                <div className="absolute top-0 -left-4 w-56 sm:w-72 h-56 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+                <div className="absolute top-0 -right-4 w-56 sm:w-72 h-56 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+                <div className="absolute -bottom-8 left-20 w-56 sm:w-72 h-56 sm:h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
 
                 {/* Invoice preview mockup */}
-                <div className="bg-white rounded-2xl shadow-2xl p-6 relative backdrop-blur-sm border border-white/20">
-                  <div className="flex justify-between items-center mb-6">
+                <div className="bg-white rounded-2xl shadow-2xl p-4 sm:p-6 relative backdrop-blur-sm border border-white/20">
+                  <div className="flex justify-between items-center mb-4 sm:mb-6">
                     <div className="flex items-center">
-                      <div className="w-10 h-10 rounded-lg bg-blue-600 flex items-center justify-center">
-                        <FileText className="h-6 w-6 text-white" />
+                      <div className="w-8 sm:w-10 h-8 sm:h-10 rounded-lg bg-blue-600 flex items-center justify-center">
+                        <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                       </div>
-                      <div className="ml-3">
-                        <div className="h-4 w-24 bg-gray-200 rounded"><span className="flex items-center justify-center h-full text-black">INVOICE</span></div>
-                        <div className="h-3 w-16 bg-gray-100 rounded mt-1"></div>
+                      <div className="ml-2 sm:ml-3">
+                        <div className="h-4 w-20 sm:w-24 bg-gray-200 rounded"><span className="flex items-center justify-center h-full text-black text-xs sm:text-sm">INVOICE</span></div>
+                        <div className="h-2 sm:h-3 w-12 sm:w-16 bg-gray-100 rounded mt-1"></div>
                       </div>
                     </div>
                     <div>
-                      <div className="h-6 w-20 bg-blue-100 rounded-full"></div>
+                      <div className="h-5 sm:h-6 w-16 sm:w-20 bg-blue-100 rounded-full"></div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <div className="h-3 w-16 bg-gray-200 rounded mb-2"><p className="">GST NO.-#01928373636171</p></div>
-                        <div className="h-4 w-32 bg-gray-100 rounded"></div>
+                        <div className="h-3 w-14 sm:w-16 bg-gray-200 rounded mb-1 sm:mb-2"><p className="text-xs">GST NO.-#0192837</p></div>
+                        <div className="h-3 sm:h-4 w-24 sm:w-32 bg-gray-100 rounded"></div>
                       </div>
                       <div>
-                        <div className="h-3 w-16 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-4 w-20 bg-gray-100 rounded"></div>
+                        <div className="h-3 w-14 sm:w-16 bg-gray-200 rounded mb-1 sm:mb-2"></div>
+                        <div className="h-3 sm:h-4 w-16 sm:w-20 bg-gray-100 rounded"></div>
                       </div>
                     </div>
 
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <div className="h-3 w-24 bg-gray-200 rounded mb-3"></div>
-                      <div className="space-y-2">
+                    <div className="bg-gray-50 rounded-lg p-3 sm:p-4">
+                      <div className="h-2 sm:h-3 w-20 sm:w-24 bg-gray-200 rounded mb-2 sm:mb-3"></div>
+                      <div className="space-y-1 sm:space-y-2">
                         {[...Array(3)].map((_, i) => (
                           <div key={i} className="flex justify-between">
-                            <div className="h-4 w-40 bg-gray-100 rounded"></div>
-                            <div className="h-4 w-16 bg-gray-100 rounded"></div>
+                            <div className="h-3 sm:h-4 w-28 sm:w-40 bg-gray-100 rounded"></div>
+                            <div className="h-3 sm:h-4 w-12 sm:w-16 bg-gray-100 rounded"></div>
                           </div>
                         ))}
                       </div>
-                      <div className="mt-4 pt-2 border-t border-dashed border-gray-200">
+                      <div className="mt-3 sm:mt-4 pt-2 border-t border-dashed border-gray-200">
                         <div className="flex justify-between">
-                          <div className="h-5 w-20 bg-gray-200 rounded"></div>
-                          <div className="h-5 w-24 bg-blue-100 rounded font-medium"><span className="flex items-center justify-center text-blue-700">Rs.5600</span></div>
+                          <div className="h-4 sm:h-5 w-16 sm:w-20 bg-gray-200 rounded"></div>
+                          <div className="h-4 sm:h-5 w-20 sm:w-24 bg-blue-100 rounded font-medium"><span className="flex items-center justify-center h-full text-blue-700 text-xs sm:text-sm">Rs.5600</span></div>
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-6 flex space-x-3">
-                    <div className="h-10 flex-1 rounded-lg bg-blue-600"><p className="flex items-center justify-center h-full text-white">Download</p></div>
-                    <div className="h-10 flex-1 rounded-lg bg-gray-100"><p className="flex items-center justify-center h-full text-blue-600">Share</p></div>
+                  <div className="mt-4 sm:mt-6 flex space-x-2 sm:space-x-3">
+                    <div className="h-8 sm:h-10 flex-1 rounded-lg bg-blue-600"><p className="flex items-center justify-center h-full text-white text-xs sm:text-sm">Download</p></div>
+                    <div className="h-8 sm:h-10 flex-1 rounded-lg bg-gray-100"><p className="flex items-center justify-center h-full text-blue-600 text-xs sm:text-sm">Share</p></div>
                   </div>
                 </div>
 
-                <div className="absolute -top-4 -right-4 bg-yellow-400 rounded-full p-2 shadow-lg animate-bounce">
-                  <span className="text-xs font-bold text-gray-900 px-2">GST Ready!</span>
+                <div className="absolute -top-4 -right-4 bg-yellow-400 rounded-full p-1.5 sm:p-2 shadow-lg animate-bounce">
+                  <span className="text-xs font-bold text-gray-900 px-1.5 sm:px-2">GST Ready!</span>
                 </div>
               </div>
             </motion.div>
           </div>
         </div>
 
-        {/* Wave separator */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10">
-          <svg className="relative block w-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0S75.8,50.93,321.39,56.44Z" fill="white"></path>
-          </svg>
-        </div>
+        {/* Separator - clean straight line instead of curve */}
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-white z-10"></div>
       </section>
 
       {/* Features Section */}
