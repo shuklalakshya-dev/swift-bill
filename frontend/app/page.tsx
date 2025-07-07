@@ -9,6 +9,9 @@ import {
   FileText, Download, Share2, Calculator,
   Smartphone, Shield, Menu, X, ChevronRight
 } from "lucide-react";
+import TrueFocus from "@/components/TrueFocus";
+import ScrollFloat from "@/components/ScrollFloat";
+import Silk from "@/components/Silk";
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -53,8 +56,12 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-x-hidden">
+    
+
+
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50  overflow-x-hidden">
       {/* Floating Elements */}
+
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 left-[15%] w-64 h-64 rounded-full bg-gradient-to-r from-blue-300/20 to-indigo-300/20 blur-3xl animate-blob"></div>
         <div className="absolute top-2/3 right-[15%] w-80 h-80 rounded-full bg-gradient-to-r from-indigo-300/20 to-purple-300/20 blur-3xl animate-blob animation-delay-2000"></div>
@@ -63,7 +70,7 @@ export default function HomePage() {
 
       {/* Header */}
       <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-        scrollY > 50 ? "bg-white/90 backdrop-blur-lg shadow-md" : "bg-transparent"
+        scrollY > 50 ? "bg-[#702963] backdrop-blur-lg shadow-md" : "bg-transparent"
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -84,7 +91,7 @@ export default function HomePage() {
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 text-transparent bg-clip-text"
+                className="ml-3 text-2xl font-bold bg-white text-transparent bg-clip-text"
               >
                 SwiftBill
               </motion.span>
@@ -101,10 +108,10 @@ export default function HomePage() {
                 >
                   <Link
                     href={item === "Features" ? "#features" : `/${item.toLowerCase().replace(" ", "-")}`}
-                    className="relative text-gray-600 font-medium hover:text-blue-600 transition-colors group"
+                    className="relative text-white font-medium hover:text-blue-300 transition-colors group"
                   >
                     {item}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-300 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </motion.div>
               ))}
@@ -147,22 +154,43 @@ export default function HomePage() {
 
       {/* Hero Section */}
       <section ref={heroRef} className="pt-36 pb-24 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        {/* Add Silk as background */}
+        <div className="absolute inset-0 z-5 overflow-hidden">
+          <Silk 
+            speed={2.5}
+            scale={1.5}
+            color="#702963" 
+            noiseIntensity={1.2}
+            rotation={0.2}
+          />
+        </div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
           <div className="grid md:grid-cols-2 gap-8 items-center">
             <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: -50}}
               transition={{ duration: 0.8, ease: "easeOut" }}
               className="text-center md:text-left"
             >
               <div className="inline-block mb-4 px-3 py-1 bg-blue-100 rounded-full text-blue-700 text-sm font-medium">
                 🚀 GST Ready Invoice Generator
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                <span className="block">Generate Professional</span>
-                <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-transparent bg-clip-text">Invoices in Minutes</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
+                {/* <span className="block">Generate Professional</span> */}
+                {/* <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-transparent bg-clip-text">Invoices in Minutes</span> */}
+           
+
+<TrueFocus
+sentence="Generate Professional Invoices in Minutes"
+manualMode={false}
+blurAmount={5}
+borderColor="yellow"
+animationDuration={1.5}
+pauseBetweenAnimations={1}
+/>
               </h1>
-              <p className="text-xl text-gray-600 mb-8 md:max-w-lg">
+              <p className="text-xl text-gray-200 mb-8 md:max-w-lg">
                 Create GST-ready invoices in ₹ (INR), download as PDF, and share instantly. Perfect for Indian
                 freelancers and small businesses.
               </p>
@@ -269,7 +297,7 @@ export default function HomePage() {
         </div>
 
         {/* Wave separator */}
-        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none">
+        <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none z-10">
           <svg className="relative block w-full" viewBox="0 0 1200 120" preserveAspectRatio="none">
             <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V120H0V0S75.8,50.93,321.39,56.44Z" fill="white"></path>
           </svg>
@@ -539,7 +567,7 @@ export default function HomePage() {
         <div className="absolute top-0 left-0 right-0 h-32 overflow-hidden">
           <svg viewBox="0 0 1200 120" className="absolute top-0 left-0 w-full h-32 -mt-20">
             <path fill="rgba(255,255,255,0.1)" d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V0Z"></path>
-            <path fill="rgba(255,255,255,0.05)" d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39,116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"></path>
+            <path fill="rgba(255,255,255,0.05)" d="M0,0V15.81C13,36.92,27.64,56.86,47.69,72.05,99.41,111.27,165,111,224.58,91.58c31.15-10.15,60.09-26.07,89.67-39.8,40.92-19,84.73-46,130.83-49.67,36.26-2.85,70.9,9.42,98.6,31.56,31.77,25.39,62.32,62,103.63,73,40.44,10.79,81.35-6.69,119.13-24.28s75.16-39 116.92-43.05c59.73-5.85,113.28,22.88,168.9,38.84,30.2,8.66,59,6.17,87.09-7.5,22.43-10.89,48-26.93,60.65-49.24V0Z"></path>
           </svg>
         </div>
 
