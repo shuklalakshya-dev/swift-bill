@@ -12,8 +12,10 @@ import {
 import TrueFocus from "@/components/TrueFocus";
 import ScrollFloat from "@/components/ScrollFloat";
 import Silk from "@/components/Silk";
+import OpeningAnimation from "@/components/OpeningAnimation";
 
 export default function HomePage() {
+  const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
   const heroRef = useRef<HTMLDivElement>(null);
@@ -56,12 +58,13 @@ export default function HomePage() {
   };
 
   return (
-    
-
-
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50  overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 overflow-x-hidden">
+      {/* Netflix-style opening animation */}
+      {isAnimationPlaying && (
+        <OpeningAnimation onComplete={() => setIsAnimationPlaying(false)} />
+      )}
+      
       {/* Floating Elements */}
-
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-1/4 left-[15%] w-64 h-64 rounded-full bg-gradient-to-r from-blue-300/20 to-indigo-300/20 blur-3xl animate-blob"></div>
         <div className="absolute top-2/3 right-[15%] w-80 h-80 rounded-full bg-gradient-to-r from-indigo-300/20 to-purple-300/20 blur-3xl animate-blob animation-delay-2000"></div>
