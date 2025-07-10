@@ -13,6 +13,7 @@ import TrueFocus from "@/components/TrueFocus";
 import ScrollFloat from "@/components/ScrollFloat";
 import Silk from "@/components/Silk";
 import OpeningAnimation from "@/components/OpeningAnimation";
+import VantaBackground from "@/components/VantaBackground";
 
 export default function HomePage() {
   const [isAnimationPlaying, setIsAnimationPlaying] = useState(true);
@@ -73,7 +74,7 @@ export default function HomePage() {
 
       {/* Header */}
       <header className={`fixed w-full top-0 z-50 transition-all duration-300 ${
-        scrollY > 50 ? "bg-[#702963] backdrop-blur-lg shadow-md" : "bg-transparent"
+        scrollY > 50 ? "bg-blue-200 backdrop-blur-lg shadow-md" : "bg-transparent"
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
@@ -94,7 +95,7 @@ export default function HomePage() {
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="ml-3 text-2xl font-bold bg-white text-transparent bg-clip-text"
+                className="ml-3 text-2xl font-bold bg-blue-800 text-transparent bg-clip-text"
               >
                 SwiftBill
               </motion.span>
@@ -111,10 +112,10 @@ export default function HomePage() {
                 >
                   <Link
                     href={item === "Features" ? "#features" : `/${item.toLowerCase().replace(" ", "-")}`}
-                    className="relative text-white font-medium hover:text-blue-300 transition-colors group"
+                    className="relative text-blue-800 font-medium hover:text-black transition-colors group"
                   >
                     {item}
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-300 transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-800 transition-all duration-300 group-hover:w-full"></span>
                   </Link>
                 </motion.div>
               ))}
@@ -157,15 +158,9 @@ export default function HomePage() {
 
       {/* Hero Section - removed curve, full height background */}
       <section ref={heroRef} className="pt-24 sm:pt-28 md:pt-36 pb-16 md:pb-24 relative min-h-screen max-h-screen">
-        {/* Add Silk as background */}
+        {/* Replace Silk with VantaBackground */}
         <div className="absolute inset-0 z-5 overflow-hidden">
-          <Silk 
-            speed={10}
-            scale={2}
-            color="#702963" 
-            noiseIntensity={1.2}
-            rotation={0.2}
-          />
+          <VantaBackground />
         </div>
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
@@ -179,17 +174,17 @@ export default function HomePage() {
               <div className="inline-block mb-4 px-3 py-1 bg-blue-100 rounded-full text-blue-700 text-sm font-medium">
                 🚀 GST Ready Invoice Generator
               </div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black mb-4 sm:mb-6 leading-tight">
                 <TrueFocus
                   sentence="Generate Professional Invoices in Minutes"
                   manualMode={false}
                   blurAmount={5}
-                  borderColor="yellow"
+                  borderColor="blue"
                   animationDuration={1.5}
                   pauseBetweenAnimations={1}
                 />
               </h1>
-              <p className="text-lg sm:text-xl text-gray-200 mb-6 sm:mb-8 max-w-lg mx-auto md:mx-0">
+              <p className="text-lg sm:text-xl text-gray-900 mb-6 sm:mb-8 max-w-lg mx-auto md:mx-0">
                 Create GST-ready invoices in ₹ (INR), download as PDF, and share instantly. Perfect for Indian
                 freelancers and small businesses.
               </p>
